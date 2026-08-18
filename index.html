@@ -128,7 +128,7 @@ footer{text-align:center;color:#4a4a75;font-size:11px;margin-top:44px}
     <div class="logo">
       <div class="tv"><h1 class="pixel"><span class="r">R</span><span class="g">E</span><span class="c">T</span><span class="y">R</span><span class="g">O</span> <span class="c">QUIZ</span></h1></div>
     </div>
-    <p class="subtitle">Викторина по легендарным игровым эпохам: 5 тем, по 10 вопросов в раунде — от простых до зубодробительных. Всего в базе <b style="color:var(--gold)">2515 вопросов</b>. Выбери карточку темы и жми «► СТАРТ».</p>
+    <p class="subtitle">Викторина по легендарным игровым эпохам: 5 тем, по 10 вопросов в раунде — от простых до зубодробительных. Всего в базе <b style="color:var(--gold)" id="qTotal"></b>. Выбери карточку темы и жми «► СТАРТ».</p>
     <div class="rules">
       <span class="rule">🎯 10 вопросов за раунд</span>
       <span class="rule">📈 Сложность растёт</span>
@@ -2739,6 +2739,10 @@ const THEMES = [
  {key:"ps3", name:"ЭПОХА PS3", full:"PlayStation 3 (2006)", icon:"🎮", acc:"#b06bff", desc:"Uncharted, The Last of Us, Dark Souls и эпоха HD."}
 ];
 
+function cleanAnswer(text){
+    return text.replace(/\s*\([^)]*\)/g, "").trim();
+}
+
 const DIFF_NAME = {1:"РАЗМИНКА",2:"ЛЕГКО",3:"СРЕДНЕ",4:"СЛОЖНО",5:"ХАРДКОР"};
 
 /* ==================== ЛОГИКА ==================== */
@@ -2846,7 +2850,12 @@ function renderQuestion(){
   state.timeLeft = 25;
   const raw = state.round[state.idx];
   const d = raw[5];
-  const opts = shuffle([{t:raw[1],ok:true},{t:raw[2]},{t:raw[3]},{t:raw[4]}]);
+  const opts = shuffle([
+    {t: cleanAnswer(raw[1]), ok: true},
+    {t: cleanAnswer(raw[2])},
+    {t: cleanAnswer(raw[3])},
+    {t: cleanAnswer(raw[4])}
+]);
 
   $("hudNum").textContent = `Q${state.idx+1}/10`;
   $("hudScore").textContent = `💰 ${state.score}`;
@@ -2895,7 +2904,7 @@ function answer(btn, isOk){
   const raw = state.round[state.idx];
   buttons.forEach(b=>{
     b.disabled = true;
-    if(b.querySelector("span:last-child").textContent === raw[1]) b.classList.add("correct");
+    if(b.querySelector("span:last-child").textContent === cleanAnswer(raw[1])) b.classList.add("correct");
     else b.classList.add("dim");
   });
 
@@ -2930,7 +2939,7 @@ function timeout(){
   const raw = state.round[state.idx];
   [...document.querySelectorAll(".opt")].forEach(b=>{
     b.disabled = true;
-    if(b.querySelector("span:last-child").textContent === raw[1]) b.classList.add("correct");
+    if(b.querySelector("span:last-child").textContent === cleanAnswer(raw[1])) b.classList.add("correct");
     else b.classList.add("dim");
   });
   state.streak = 0;
@@ -3001,6 +3010,11 @@ document.addEventListener("keydown", e=>{
 });
 
 renderMenu();
+(function(){
+    const total = Object.values(DATA).reduce((s, arr) => s + arr.length, 0);
+    const el = document.getElementById("qTotal");
+    if(el) el.textContent = total + " вопросов";
+})();
 </script>
 <script>
   if ('serviceWorker' in navigator) {
